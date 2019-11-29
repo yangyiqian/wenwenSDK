@@ -55,7 +55,7 @@ java -cp target/mrcp-grpc-1.0-SNAPSHOT.jar com.mobvoi.ai.asr.sdk.Demo -mode Conf
     java -cp target/mrcp-grpc-1.0-SNAPSHOT.jar com.mobvoi.ai.asr.sdk.Demo -mode LiveRecognize -wav src/main/resources/test.wav -grpc_uri 127.0.0.1:8000
     java -cp target/mrcp-grpc-1.0-SNAPSHOT.jar com.mobvoi.ai.asr.sdk.Demo -mode ConferenceSpeechRecognize -wav src/main/resources/test.wav  -grpc_uri 10.1.205.126:8080
     ```
-=======
+
 # wenwenSDK
 问问对接Sdk client 为方便对接双方对SDK的修改，采用github方式合作开发。
->>>>>>> 9a2c325e496d9973829f029f07cd63e943d0b119
+
