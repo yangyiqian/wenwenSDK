@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package com.mobvoi.speech.recognition.conference.v1;
+
+option cc_enable_arenas = true;
+option java_outer_classname = "ConferenceSpeechProto";
+option java_package = "com.mobvoi.speech.recognition.conference.v1";
+
+// 会议语音识别服务，带部分会议管理功能，和Conference Manager对接
+service ConferenceSpeech {
+    // 双向流式语音识别接口， request为audio流，用以减少传输时间，response为识别流，识别过程中返回当前识别进度，识别结束返回最终识别结果
+    rpc Recognize (stream ConferenceSpeechRequest) returns (stream ConferenceSpeechResponse);
+}
+
+// 批式会议语音识别请求
+message ConferenceSpeechRequest {
+    // audio file in bytes. server端会根据audio文件头自动判断文件类型并做合适的类型转换，
+    // 如果文件转换失败则会返回相应的错误码。错误码见Error字段定义
+    bytes audio_content = 1;
+}
+
+// 批式会议语音识别结果
+message ConferenceSpeechResponse {
+    // 识别事件
+    enum ConferenceSpeechEventType {
+        // 没有任何事件，表明当前语音识别正在执行中，当前返回识别进度
+        CONFERENCE_SPEECH_EVENT_UNSPECIFIED = 0;
+
+        // 识别完成，返回识别结果
+        CONFERENCE_SPEECH_EOS = 1;
+    }
+
+    // 识别出现错误. 服务端不再进行识别, 客户端应停止发送数据.
+    Error error = 1;
+
+    // 当前语音识别结果. 当speech_event_type为CONFERENCE_SPEECH_EOS,
+    // 返回的是最终识别结果.
+    // 当speech_event_type为CONFERENCE_SPEECH_EVENT_UNSPECIFIED时,
+    // 返回当前识别进度.
+    ConferenceSpeechResult result = 2;
+
+    // 识别事件.
+    ConferenceSpeechEventType speech_event_type = 4;
+}
+
+// 批式会议语音识别结果
+message ConferenceSpeechResult {
+    // 语音识别文本结果.
+    string transcript = 1;
+    // 解码进度，该结果出现的帧位置对应的时间，单位：毫秒
+    float decoded_wav_time = 2;
+    // 音频总长, 单位: 毫秒
+    float total_wav_time = 3;
+}
+
+// 识别错误
+message Error {
+    // 错误代码
+    enum Code {
+        // 无错误
+        OK = 0;
+
+        // 服务端取消
+        CANCELLED = 1;
+
+        // 未知错误
+        UNKNOWN = 2;
+
+        // 请求参数不合法
+        INVALID_ARGUMENT = 3;
+
+        // 请求超过最大并发数
+        CONCURRENT_OVERFLOW_ERROR = 4;
+
+        // 授权已过期
+        LICENSE_OVERDUE_ERROR = 5;
+
+        // 请求音频格式无法自动转换
+        UNSUPPORTED_AUDIO_FORMAT = 6;
+
+        // 请求音频文件过大, 超过8个小时
+        AUDIO_FILE_TOO_LARGE = 7;
+    }
+
+    // 错误代码
+    Code code = 1;
+
+    // 错误消息
+    string message = 2;
+}
