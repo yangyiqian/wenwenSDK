@@ -1,6 +1,7 @@
 // Copyright(c) 2018 Mobvoi Inc. All Rights Reserved.
 package com.mobvoi.ai.asr.sdk;
 
+import com.mobvoi.ai.asr.sdk.utils.ConferenceSpeechListener;
 import com.mobvoi.ai_commerce.speech.v1.SpeechProto;
 import org.apache.commons.cli.*;
 
@@ -119,7 +120,8 @@ public class Demo {
         System.exit(-1);
       }
       ConferenceSpeechClient client = new ConferenceSpeechClient(grpcUri);
-      client.batchRecognize(wavfilePath, "sample.docx", "uuid");
+      ConferenceSpeechListener listener = new ConferenceSpeechListener("audio id", "sample.docx");
+      client.batchRecognize(wavfilePath, listener);
       System.out.println("Recognized transcripts is written to sample.docx");
       System.exit(1);
     }

@@ -3,6 +3,7 @@ package com.mobvoi.ai.asr.sdk;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.TextFormat;
 import com.mobvoi.ai.asr.sdk.utils.CommonUtils;
+import com.mobvoi.ai.asr.sdk.utils.ConferenceSpeechListener;
 import com.mobvoi.ai.asr.sdk.utils.DocUtils;
 import com.mobvoi.ai_commerce.speech.v1.SpeechGrpc;
 import com.mobvoi.ai_commerce.speech.v1.SpeechProto;
@@ -38,12 +39,11 @@ public class ConferenceSpeechClient {
   private final ManagedChannel channel;
 
   public ConferenceSpeechClient(String uri) {
-    //log.info("Set uri {} for BatchRecognizeClient.", uri);
+    log.info("Set uri {} for BatchRecognizeClient.", uri);
     Pair<String, Integer> hostAndPort = CommonUtils.parseHostIp(uri);
     // 为简化code，暂时不处理hostAndPort为null的情况
     channel = ManagedChannelBuilder
         .forAddress(hostAndPort.getKey(), hostAndPort.getValue())
-        .maxInboundMessageSize(Integer.MAX_VALUE)
         .enableRetry()
         .maxRetryAttempts(3)
         .usePlaintext()
@@ -70,48 +70,6 @@ public class ConferenceSpeechClient {
     return builder.build();
   }
 
-  // TODO(业务方): 业务方可以根据需要修改该函数来对接其系统
-  private StreamObserver<ConferenceSpeechProto.ConferenceSpeechResponse> setupResponseObserver(String audioInfo, CountDownLatch latch, String outputDocFilePath) {
-    return new StreamObserver<ConferenceSpeechProto.ConferenceSpeechResponse>() {
-      @Override
-      public void onNext(ConferenceSpeechProto.ConferenceSpeechResponse response) {
-        if (response.hasError() && !ConferenceSpeechProto.Error.Code.OK.equals(response.getError().getCode())) {
-          // TODO(业务方): 业务方可以根据conference.proto中定义的error进行处理
-          System.out.println("Error met " + TextFormat.printToUnicodeString(response));
-          latch.countDown();
-        }
-        if (ConferenceSpeechProto.ConferenceSpeechResponse.ConferenceSpeechEventType.CONFERENCE_SPEECH_EOS
-            .equals(response.getSpeechEventType())) {
-          String finalTranscript = response.getResult().getTranscript();
-          try {
-            DocUtils.toWord(finalTranscript, outputDocFilePath);
-          } catch (Exception e) {
-            System.err.println("Failed to write final transcript to word file with content \n" + finalTranscript);
-          }
-          latch.countDown();
-        } else {
-          float decodedWavTime = response.getResult().getDecodedWavTime();
-          float totalWavTime = response.getResult().getTotalWavTime();
-          String conclusion = String.format("Current docoding progress: decoded wav time %s, total wav time %s, progress %s", 
-              decodedWavTime, totalWavTime, decodedWavTime / totalWavTime);
-          System.out.println(conclusion);
-        }
-      }
-
-      @Override
-      public void onError(Throwable t) {
-        //log.error(t.getMessage());
-        latch.countDown();
-      }
-
-      @Override
-      public void onCompleted() {
-        //log.info("complete asr call");
-        latch.countDown();
-      }
-    };
-  }
-
   private ConferenceSpeechProto.ConferenceSpeechRequest setupStreamingRecognizeRequestAsAudioContent(byte[] bytes) {
     ConferenceSpeechProto.ConferenceSpeechRequest.Builder builder = ConferenceSpeechProto.ConferenceSpeechRequest.newBuilder();
     builder.setAudioContent(ByteString.copyFrom(bytes));
@@ -119,15 +77,14 @@ public class ConferenceSpeechClient {
   }
 
   // 此接口用作非实时语音识别, 由于音频文件可能会很大，所以采用流式发送的方法。
-  public boolean batchRecognize(String audioFile, String outputWordFileName, String audioInfo)
+  public boolean batchRecognize(String audioFile, ConferenceSpeechListener listener)
       throws IOException, UnsupportedAudioFileException {
 
     StopWatch stopWatch = new StopWatch();
     stopWatch.start();
     CountDownLatch latch = new CountDownLatch(1);
     ConferenceSpeechGrpc.ConferenceSpeechStub stub = ConferenceSpeechGrpc.newStub(channel);
-    StreamObserver<ConferenceSpeechProto.ConferenceSpeechResponse> responseObserver = setupResponseObserver(audioInfo, latch, outputWordFileName);
-    StreamObserver<ConferenceSpeechProto.ConferenceSpeechRequest> requestObserver = stub.recognize(responseObserver);
+    StreamObserver<ConferenceSpeechProto.ConferenceSpeechRequest> requestObserver = stub.recognize(listener.getRStreamObserver());
     
     try (FileInputStream fis = new FileInputStream(audioFile)) {
       int numBytes = 160;
@@ -155,11 +112,11 @@ public class ConferenceSpeechClient {
     // Receiving happens asynchronously
     try {    
       if (!latch.await(4, TimeUnit.HOURS)) {
-        //log.warn("recognition can not finish within 4 hours");
+        log.warn("recognition can not finish within 4 hours");
       }
     } catch (java.lang.InterruptedException e) {
       e.printStackTrace();
-    }
+    } 
 
     stopWatch.stop();
     long elapsed = stopWatch.getTime(TimeUnit.MILLISECONDS);
@@ -169,6 +126,7 @@ public class ConferenceSpeechClient {
 
   public static void main(String[] args) throws IOException, UnsupportedAudioFileException {
     ConferenceSpeechClient client = new ConferenceSpeechClient("0.0.0.0:8080");
-    client.batchRecognize("/Users/qli/Documents/出门问问技术ToB/盛科维/1-写给云-低质量1.amr", "sample.docx", "customized info");
+    ConferenceSpeechListener listener = new ConferenceSpeechListener("audio id", "sample.docx");
+    client.batchRecognize("/Users/qli/Documents/出门问问技术ToB/盛科维/1-写给云-低质量1.amr", listener);
   }
 }
