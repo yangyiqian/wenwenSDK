@@ -5,6 +5,7 @@ import com.google.protobuf.TextFormat;
 import com.mobvoi.ai.asr.sdk.utils.CommonUtils;
 import com.mobvoi.ai.asr.sdk.utils.ConferenceSpeechListener;
 import com.mobvoi.ai.asr.sdk.utils.DocUtils;
+import com.mobvoi.ai.asr.sdk.utils.SingletonChannel;
 import com.mobvoi.ai_commerce.speech.v1.SpeechGrpc;
 import com.mobvoi.ai_commerce.speech.v1.SpeechProto;
 import com.mobvoi.speech.recognition.conference.v1.ConferenceSpeechGrpc;
@@ -38,16 +39,9 @@ import org.apache.commons.lang3.tuple.Pair;
 public class ConferenceSpeechClient {
   private final ManagedChannel channel;
 
-  public ConferenceSpeechClient(String uri) {
-    log.info("Set uri {} for BatchRecognizeClient.", uri);
-    Pair<String, Integer> hostAndPort = CommonUtils.parseHostIp(uri);
-    // 为简化code，暂时不处理hostAndPort为null的情况
-    channel = ManagedChannelBuilder
-        .forAddress(hostAndPort.getKey(), hostAndPort.getValue())
-        .enableRetry()
-        .maxRetryAttempts(3)
-        .usePlaintext()
-        .build();
+  {
+    channel =SingletonChannel.getInstance().getChannel();
+    log.info("--------->>>>>"+channel.hashCode());
   }
 
   public synchronized void shutdown() throws InterruptedException {
@@ -100,7 +94,7 @@ public class ConferenceSpeechClient {
       // Avoid busy looping.
       try {
         Thread.sleep(1);
-      } catch (java.lang.InterruptedException e) {
+      } catch (InterruptedException e) {
         e.printStackTrace();
       }
       
@@ -114,7 +108,7 @@ public class ConferenceSpeechClient {
       if (!latch.await(4, TimeUnit.HOURS)) {
         log.warn("recognition can not finish within 4 hours");
       }
-    } catch (java.lang.InterruptedException e) {
+    } catch (InterruptedException e) {
       e.printStackTrace();
     } 
 
@@ -125,7 +119,7 @@ public class ConferenceSpeechClient {
   }
 
   public static void main(String[] args) throws IOException, UnsupportedAudioFileException {
-    ConferenceSpeechClient client = new ConferenceSpeechClient("0.0.0.0:8080");
+    ConferenceSpeechClient client = new ConferenceSpeechClient();
     ConferenceSpeechListener listener = new ConferenceSpeechListener("audio id", "sample.docx");
     client.batchRecognize("/Users/qli/Documents/出门问问技术ToB/盛科维/1-写给云-低质量1.amr", listener);
   }
