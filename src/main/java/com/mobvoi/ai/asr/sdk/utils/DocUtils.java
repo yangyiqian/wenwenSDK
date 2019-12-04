@@ -1,10 +1,10 @@
 package com.mobvoi.ai.asr.sdk.utils;
 
-import java.io.FileOutputStream;
-
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
+
+import java.io.FileOutputStream;
 
 public class DocUtils {
     /**

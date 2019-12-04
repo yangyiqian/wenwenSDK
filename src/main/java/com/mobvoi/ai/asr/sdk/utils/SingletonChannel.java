@@ -54,7 +54,6 @@ public class SingletonChannel {
     }
 
 
-
     public synchronized void shutdown() throws InterruptedException {
         channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
     }

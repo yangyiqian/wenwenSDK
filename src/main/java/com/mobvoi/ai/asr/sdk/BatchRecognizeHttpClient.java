@@ -1,24 +1,15 @@
 package com.mobvoi.ai.asr.sdk;
 
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.*;
+import org.json.JSONObject;
+
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
-
 import java.io.File;
 import java.io.IOException;
-
-import lombok.extern.slf4j.Slf4j;
-import okhttp3.Call;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.Headers;
-import okhttp3.Callback;
-
-import org.json.JSONObject;
 
 /**
  * @author xiaokai.yang <xiaokai.yang@mobvoi.com>

@@ -1,15 +1,13 @@
 // Copyright(c) 2018 Mobvoi Inc. All Rights Reserved.
 package com.mobvoi.ai.asr.sdk.utils;
 
-import java.util.concurrent.CountDownLatch;
-
 import com.google.protobuf.TextFormat;
-import com.mobvoi.speech.recognition.conference.v1.ConferenceSpeechGrpc;
 import com.mobvoi.speech.recognition.conference.v1.ConferenceSpeechProto;
-
 import io.grpc.stub.StreamObserver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.CountDownLatch;
 
 // TODO(业务方): 业务方可以根据需要修改该函数来对接其系统
 // 一个语音文件一个listener
