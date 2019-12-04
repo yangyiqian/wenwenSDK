@@ -1,11 +1,15 @@
 package com.mobvoi.ai.asr.sdk.utils;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  *  * 
  *  * @author Jacky
  *  *
  *  
  */
+
+@Slf4j
 public class UnicodeUtils {
 
 
@@ -14,25 +18,25 @@ public class UnicodeUtils {
 
         String str = "是";
 
-        System.out.println(str);
+        log.info(str);
 
         str = toUnicode(str, false);
 
 
-        System.out.println(str);
+        log.info(str);
 
 
         str = "az";
 
-        System.out.println(str);
+        log.info(str);
 
         str = stringToUnicode(str);
 
-        System.out.println(str);
+        log.info(str);
 
         str = fromUnicode(str);
 
-        System.out.println(str);
+        log.info(str);
 
 
     }

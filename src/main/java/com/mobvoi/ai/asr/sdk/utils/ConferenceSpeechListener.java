@@ -37,7 +37,7 @@ public class ConferenceSpeechListener {
             public void onNext(ConferenceSpeechProto.ConferenceSpeechResponse response) {
                 if (response.hasError() && !ConferenceSpeechProto.Error.Code.OK.equals(response.getError().getCode())) {
                     // TODO(业务方): 业务方可以根据conference.proto中定义的error进行处理
-                    System.out.println("Error met " + TextFormat.printToUnicodeString(response));
+                    log.info("Error met " + TextFormat.printToUnicodeString(response));
                     latch.countDown();
                 }
                 if (ConferenceSpeechProto.ConferenceSpeechResponse.ConferenceSpeechEventType.CONFERENCE_SPEECH_EOS
@@ -55,7 +55,7 @@ public class ConferenceSpeechListener {
                     tSpeechListener.setDecodingProgress(decodedWavTime / totalWavTime);
                     String conclusion = String.format("Current docoding progress: decoded wav time %s, total wav time %s, progress %s",
                             decodedWavTime, totalWavTime, tSpeechListener.getDecodingProgress());
-                    System.out.println(conclusion);
+                    log.info(conclusion);
                 }
             }
 

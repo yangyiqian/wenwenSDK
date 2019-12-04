@@ -103,7 +103,7 @@ public class ConferenceSpeechClient {
 
     stopWatch.stop();
     long elapsed = stopWatch.getTime(TimeUnit.MILLISECONDS);
-    System.out.println("Elapsed " + elapsed + "ms");
+    log.info("Elapsed " + elapsed + "ms");
     return true;
   }
 

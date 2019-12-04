@@ -83,7 +83,7 @@ public class BatchRecognizeClient {
                 setupRecognizeRequest((int) audioFormat.getSampleRate(), audioFormat.getChannels(), diarizationMode, bytes));
         stopWatch.stop();
         long elapsed = stopWatch.getTime(TimeUnit.MILLISECONDS);
-        System.out.println("Elapsed " + elapsed + "ms");
-        System.out.println(TextFormat.printToUnicodeString(response));
+        log.info("Elapsed " + elapsed + "ms");
+        log.info(TextFormat.printToUnicodeString(response));
     }
 }

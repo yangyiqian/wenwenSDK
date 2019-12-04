@@ -60,9 +60,9 @@ public class StreamingRecognizeClient {
         if (SpeechEventType.LIVE_DECODING_END_OF_UTTERANCE.equals(streamingRecognizeResponse.getSpeechEventType())) {
           System.out.print(TextFormat.printToUnicodeString(streamingRecognizeResponse));
         } else if (SpeechEventType.END_OF_SINGLE_UTTERANCE.equals(streamingRecognizeResponse.getSpeechEventType())) {
-          System.out.println(TextFormat.printToUnicodeString(streamingRecognizeResponse));
+          log.info(TextFormat.printToUnicodeString(streamingRecognizeResponse));
         } else {
-          System.out.println(TextFormat.printToUnicodeString(streamingRecognizeResponse));
+          log.info(TextFormat.printToUnicodeString(streamingRecognizeResponse));
         }
       }
 
@@ -184,7 +184,7 @@ public class StreamingRecognizeClient {
     int sampleRate = audioInfo.getKey();
 
     // 开始识别
-    System.out.println("Run session recognize on " + audioFile);
+    log.info("Run session recognize on " + audioFile);
     StopWatch stopWatch = new StopWatch();
     stopWatch.start();
     while (!dataQueue.isEmpty()) {
@@ -193,7 +193,7 @@ public class StreamingRecognizeClient {
     }
     stopWatch.stop();
     long elapsed = stopWatch.getTime(TimeUnit.MILLISECONDS);
-    System.out.println("Elapsed " + elapsed + "ms");
+    log.info("Elapsed " + elapsed + "ms");
   }
 
   private void startRecognizeInternal(ConcurrentLinkedQueue<byte[]> dataQueue,
@@ -234,7 +234,7 @@ public class StreamingRecognizeClient {
     try (FileOutputStream fos = new FileOutputStream(outputFile)) {
       bos.writeTo(fos);
     }
-    System.out.println("Done");
+    log.info("Done");
   }
 
   private void streamingRecognizeInternal(String audioFile,
@@ -255,7 +255,7 @@ public class StreamingRecognizeClient {
     startRecognizeInternal(dataQueue, intervalMills, sampleRate, enableEndpointDetection, enablePartialResult, enableLiveDecoding, startSilence, endSilence);
     stopWatch.stop();
     long elapsed = stopWatch.getTime(TimeUnit.MILLISECONDS);
-    System.out.println("Elapsed " + elapsed + "ms");
+    log.info("Elapsed " + elapsed + "ms");
   }
 
   /**

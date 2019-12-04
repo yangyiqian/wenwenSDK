@@ -3,6 +3,7 @@ package com.mobvoi.ai.asr.sdk;
 
 import com.mobvoi.ai.asr.sdk.utils.ConferenceSpeechListener;
 import com.mobvoi.ai_commerce.speech.v1.SpeechProto;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.*;
 
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -13,6 +14,7 @@ import java.io.IOException;
  * @author qli <qli@mobvoi.com>
  * @date 2019/3/19
  */
+@Slf4j
 public class Demo {
 
     public static void main(String[] args) throws InterruptedException, IOException, UnsupportedAudioFileException {
@@ -35,7 +37,7 @@ public class Demo {
             CommandLineParser parser = new BasicParser();
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
-            System.out.println(e.getMessage());
+            log.info(e.getMessage());
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("utility-name", options);
             System.exit(1);
@@ -44,7 +46,7 @@ public class Demo {
         String wavfilePath = cmd.getOptionValue("wav");
 
         if (!new File(wavfilePath).exists()) {
-            System.out.println("wav is not found in the specified path: <" + wavfilePath + "> use test wav in resources instead");
+            log.info("wav is not found in the specified path: <" + wavfilePath + "> use test wav in resources instead");
             System.exit(-1);
         }
 
@@ -54,24 +56,24 @@ public class Demo {
 
         if ("BatchHTTPRecognize".equals(mode)) {
             if (httpUri.isEmpty()) {
-                System.out.println("You should specify http_uri to use BatchHTTPRecognize");
+                log.info("You should specify http_uri to use BatchHTTPRecognize");
                 System.exit(-1);
             }
             BatchRecognizeHttpClient client = new BatchRecognizeHttpClient();
             boolean res = client.batchRecognize(httpUri, wavfilePath, "");
             if (res) {
-                System.out.println("rtf: " + client.GetRtf());
-                System.out.println("result: " + client.GetText());
+                log.info("rtf: " + client.GetRtf());
+                log.info("result: " + client.GetText());
             } else {
-                System.out.println("recognize failure!");
+                log.info("recognize failure!");
             }
             System.exit(1);
         }
 
         if ("BatchRecognize".equals(mode)) {
-            System.out.println("Run BatchRecognize on " + wavfilePath);
+            log.info("Run BatchRecognize on " + wavfilePath);
             if (grpcUri.isEmpty()) {
-                System.out.println("You should specify grpc_uri to use BatchRecognize");
+                log.info("You should specify grpc_uri to use BatchRecognize");
                 System.exit(-1);
             }
             BatchRecognizeClient client = new BatchRecognizeClient(grpcUri);
@@ -82,7 +84,7 @@ public class Demo {
 
         if ("StreamingRecognize".equals(mode)) {
             if (grpcUri.isEmpty()) {
-                System.out.println("You should specify grpc_uri to use StreamingRecognize");
+                log.info("You should specify grpc_uri to use StreamingRecognize");
                 System.exit(-1);
             }
             StreamingRecognizeClient client = new StreamingRecognizeClient(grpcUri);
@@ -93,7 +95,7 @@ public class Demo {
 
         if ("SessionRecognize".equals(mode)) {
             if (grpcUri.isEmpty()) {
-                System.out.println("You should specify grpc_uri to use SessionRecognize");
+                log.info("You should specify grpc_uri to use SessionRecognize");
                 System.exit(-1);
             }
 
@@ -105,7 +107,7 @@ public class Demo {
 
         if ("LiveRecognize".equals(mode)) {
             if (grpcUri.isEmpty()) {
-                System.out.println("You should specify grpc_uri to use LiveRecognize");
+                log.info("You should specify grpc_uri to use LiveRecognize");
                 System.exit(-1);
             }
             StreamingRecognizeClient client = new StreamingRecognizeClient(grpcUri);
@@ -116,15 +118,15 @@ public class Demo {
 
         if ("ConferenceSpeechRecognize".equals(mode)) {
             if (grpcUri.isEmpty()) {
-                System.out.println("You should specify grpc_uri to use ConferenceSpeechRecognize");
+                log.info("You should specify grpc_uri to use ConferenceSpeechRecognize");
                 System.exit(-1);
             }
             ConferenceSpeechClient client = new ConferenceSpeechClient();
             ConferenceSpeechListener listener = new ConferenceSpeechListener("audio id", "sample.docx");
             client.batchRecognize(wavfilePath, listener);
-            System.out.println("Recognized transcripts is written to sample.docx");
+            log.info("Recognized transcripts is written to sample.docx");
             System.exit(1);
         }
-        System.out.println("Unrecognize mode " + mode);
+        log.info("Unrecognize mode " + mode);
     }
 }

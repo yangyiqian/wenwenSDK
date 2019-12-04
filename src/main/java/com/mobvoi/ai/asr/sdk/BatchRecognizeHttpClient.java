@@ -8,6 +8,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.File;
 import java.io.IOException;
 
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -23,6 +24,7 @@ import org.json.JSONObject;
  * @author xiaokai.yang <xiaokai.yang@mobvoi.com>
  * @date 2019/2/14
  */
+@Slf4j
 public class BatchRecognizeHttpClient {
     private String audioType = "audio/pcm";
     private String text = "";
@@ -42,7 +44,7 @@ public class BatchRecognizeHttpClient {
         try {
             audioInputStream = AudioSystem.getAudioInputStream(new File(filePath));
         } catch (UnsupportedAudioFileException e) {
-            System.out.println(e.toString());
+            log.info(e.toString());
             return false;
         }
         AudioFormat audioFormat = audioInputStream.getFormat();
@@ -75,7 +77,7 @@ public class BatchRecognizeHttpClient {
                 this.rtf = rtf;
                 return true;
             } else {
-                System.out.println("response error: error code: " + errCode);
+                log.info("response error: error code: " + errCode);
                 return false;
             }
         } catch (IOException e) {
