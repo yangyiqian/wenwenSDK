@@ -6,6 +6,7 @@ import com.mobvoi.speech.recognition.conference.v1.ConferenceSpeechProto;
 import io.grpc.stub.StreamObserver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -37,6 +38,7 @@ public class ConferenceSpeechListener {
                     // TODO(业务方): 业务方可以根据conference.proto中定义的error进行处理
                     log.info("Error met " + TextFormat.printToUnicodeString(response));
                     latch.countDown();
+                    return;
                 }
                 if (ConferenceSpeechProto.ConferenceSpeechResponse.ConferenceSpeechEventType.CONFERENCE_SPEECH_EOS
                         .equals(response.getSpeechEventType())) {
@@ -47,12 +49,25 @@ public class ConferenceSpeechListener {
                         System.err.println("Failed to write final transcript to word file with content \n" + finalTranscript);
                     }
                     latch.countDown();
+                    return;
                 } else {
                     float decodedWavTime = response.getResult().getDecodedWavTime();
                     float totalWavTime = response.getResult().getTotalWavTime();
                     tSpeechListener.setDecodingProgress(decodedWavTime / totalWavTime);
                     String conclusion = String.format("Current docoding progress: decoded wav time %s, total wav time %s, progress %s",
                             decodedWavTime, totalWavTime, tSpeechListener.getDecodingProgress());
+                    String speechPercentage = null;
+                    if (StringUtils.isNotBlank(conclusion)) {
+
+                        String[] speechPercentageArr = conclusion.split("progress ");
+                        /**截取语音识别进度百分比**/
+                        if (speechPercentageArr != null && speechPercentageArr.length == 2) {
+                            speechPercentage = speechPercentageArr[1];
+                            //语音识别进度添加到缓存
+                            MemCacheUitl.put(audioId, speechPercentage);
+                            //log.info("------------>>>>" + (String) MemCacheUitl.get(audioId));
+                        }
+                    }
                     log.info(conclusion);
                 }
             }

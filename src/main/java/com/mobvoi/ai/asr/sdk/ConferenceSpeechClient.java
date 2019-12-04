@@ -94,12 +94,12 @@ public class ConferenceSpeechClient {
 
     public static void main(String[] args) throws IOException, UnsupportedAudioFileException {
         ConferenceSpeechClient client = new ConferenceSpeechClient();
-        ConferenceSpeechListener listener = new ConferenceSpeechListener("audio id", "sample.docx");
+        ConferenceSpeechListener listener = new ConferenceSpeechListener("12345678", "sample.docx");
         client.batchRecognize("D://1-写给云-低质量1.amr", listener);
 
 
         ConferenceSpeechClient client2 = new ConferenceSpeechClient();
-        ConferenceSpeechListener listener2 = new ConferenceSpeechListener("audio id", "sample123.docx");
+        ConferenceSpeechListener listener2 = new ConferenceSpeechListener("543256789", "sample123.docx");
         client2.batchRecognize("D://1-写给云-低质量1.amr", listener2);
     }
 }
