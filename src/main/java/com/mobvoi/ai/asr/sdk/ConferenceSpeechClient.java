@@ -44,18 +44,7 @@ public class ConferenceSpeechClient {
     log.info("--------->>>>>"+channel.hashCode());
   }
 
-  public synchronized void shutdown() throws InterruptedException {
-    channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-  }
 
-  @Override
-  protected void finalize() {
-    try {
-      shutdown();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-  }
 
   private ConferenceSpeechProto.ConferenceSpeechRequest setupRecognizeRequest(byte[] bytes) {
     ConferenceSpeechProto.ConferenceSpeechRequest.Builder builder = ConferenceSpeechProto.ConferenceSpeechRequest
@@ -94,7 +83,7 @@ public class ConferenceSpeechClient {
       // Avoid busy looping.
       try {
         Thread.sleep(1);
-      } catch (InterruptedException e) {
+      } catch (java.lang.InterruptedException e) {
         e.printStackTrace();
       }
       
@@ -104,13 +93,13 @@ public class ConferenceSpeechClient {
     requestObserver.onCompleted();
 
     // Receiving happens asynchronously
-    try {    
-      if (!latch.await(4, TimeUnit.HOURS)) {
+    try {
+      if (!listener.getLatch().await(4, TimeUnit.HOURS)) {
         log.warn("recognition can not finish within 4 hours");
       }
-    } catch (InterruptedException e) {
+    } catch (java.lang.InterruptedException e) {
       e.printStackTrace();
-    } 
+    }
 
     stopWatch.stop();
     long elapsed = stopWatch.getTime(TimeUnit.MILLISECONDS);
@@ -121,6 +110,11 @@ public class ConferenceSpeechClient {
   public static void main(String[] args) throws IOException, UnsupportedAudioFileException {
     ConferenceSpeechClient client = new ConferenceSpeechClient();
     ConferenceSpeechListener listener = new ConferenceSpeechListener("audio id", "sample.docx");
-    client.batchRecognize("/Users/qli/Documents/出门问问技术ToB/盛科维/1-写给云-低质量1.amr", listener);
+    client.batchRecognize("D://1-写给云-低质量1.amr", listener);
+
+
+      ConferenceSpeechClient client2 = new ConferenceSpeechClient();
+      ConferenceSpeechListener listener2 = new ConferenceSpeechListener("audio id", "sample123.docx");
+      client2.batchRecognize("D://1-写给云-低质量1.amr", listener2);
   }
 }

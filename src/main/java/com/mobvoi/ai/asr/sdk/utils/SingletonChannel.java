@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @Author: yangyiqian
  * @Description: //单例Chanel,用于客户端获取到当前的Channel
@@ -49,5 +51,11 @@ public class SingletonChannel {
 
     public static Logger getLog() {
         return log;
+    }
+
+
+
+    public synchronized void shutdown() throws InterruptedException {
+        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
     }
 }
