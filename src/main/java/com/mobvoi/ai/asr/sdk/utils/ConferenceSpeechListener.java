@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
 // TODO(业务方): 业务方可以根据需要修改该函数来对接其系统
@@ -36,7 +37,15 @@ public class ConferenceSpeechListener {
             public void onNext(ConferenceSpeechProto.ConferenceSpeechResponse response) {
                 if (response.hasError() && !ConferenceSpeechProto.Error.Code.OK.equals(response.getError().getCode())) {
                     // TODO(业务方): 业务方可以根据conference.proto中定义的error进行处理
-                    log.info("Error met " + TextFormat.printToUnicodeString(response));
+                    //log.info("Error met " + TextFormat.printToUnicodeString(response));
+                    String jsonStr = null;
+                    try {
+                        jsonStr = ProtoJsonUtils.toJson(response);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    //输出json异常信息
+                    log.info(jsonStr);
                     latch.countDown();
                     return;
                 }
@@ -64,9 +73,9 @@ public class ConferenceSpeechListener {
                         if (speechPercentageArr != null && speechPercentageArr.length == 2) {
                             speechPercentage = speechPercentageArr[1];
                             //语音识别进度添加到缓存[业务端维护缓存删除]
-                            String audioPrefix =PropertiesLoader.getString("speechRecCacheFilePrefix");
-                            MemCacheUitl.put(audioPrefix+audioId, speechPercentage);
-                            log.info("------------>>>>" + (String) MemCacheUitl.get(audioPrefix+audioId));
+                            String audioPrefix = PropertiesLoader.getString("speechRecCacheFilePrefix");
+                            MemCacheUitl.put(audioPrefix + audioId, speechPercentage);
+                            log.info("------------>>>>" + (String) MemCacheUitl.get(audioPrefix + audioId));
                         }
                     }
                     log.info(conclusion);
