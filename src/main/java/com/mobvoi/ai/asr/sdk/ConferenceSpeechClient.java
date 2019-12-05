@@ -1,6 +1,7 @@
 package com.mobvoi.ai.asr.sdk;
 
 import com.google.protobuf.ByteString;
+import com.mobvoi.ai.asr.sdk.utils.CallBackMessage;
 import com.mobvoi.ai.asr.sdk.utils.ConferenceSpeechListener;
 import com.mobvoi.ai.asr.sdk.utils.SingletonChannel;
 import com.mobvoi.speech.recognition.conference.v1.ConferenceSpeechGrpc;
@@ -94,12 +95,10 @@ public class ConferenceSpeechClient {
 
     public static void main(String[] args) throws IOException, UnsupportedAudioFileException {
         ConferenceSpeechClient client = new ConferenceSpeechClient();
-        ConferenceSpeechListener listener = new ConferenceSpeechListener("12345678", "sample.docx");
+        CallBackMessage cbm = new CallBackMessage();
+        ConferenceSpeechListener listener = new ConferenceSpeechListener("12345678", "sample.docx",cbm);
         client.batchRecognize("D://1-写给云-低质量1.amr", listener);
+        log.info("=========================>>>"+ cbm.getCallBackJson());
 
-
-        ConferenceSpeechClient client2 = new ConferenceSpeechClient();
-        ConferenceSpeechListener listener2 = new ConferenceSpeechListener("543256789", "sample123.docx");
-        client2.batchRecognize("D://1-写给云-低质量1.amr", listener2);
     }
 }

@@ -1,41 +1,44 @@
 package com.mobvoi.ai.asr.sdk;
 
+import com.mobvoi.ai.asr.sdk.utils.CallBackMessage;
 import com.mobvoi.ai.asr.sdk.utils.ConferenceSpeechListener;
+import com.mobvoi.ai.asr.sdk.utils.RandomNumberUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.IOException;
-
+@Slf4j
 public class TestConferenceSpeechRec {
 
-	public void start(){
+    public void start() {
+        for (int i = 0; i < 10; i++) {
+            new Thread() {
+                @Override
+                public void run() {
+                    Integer randomNumber = RandomNumberUtil.getRandomNumber();
 
+                    try {
+                        CallBackMessage cbm = new CallBackMessage();
+                        ConferenceSpeechClient client = new ConferenceSpeechClient();
+                        ConferenceSpeechListener listener = new ConferenceSpeechListener("12345678" + randomNumber, "sample" + randomNumber + ".docx",cbm);
+                        client.batchRecognize("D://1-写给云-低质量1.amr", listener);
+                        log.info("=========================xxx>>>"+ cbm.getCallBackJson());
+                    } catch (UnsupportedAudioFileException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
-		for (int i = 0; i < 10; i++) {
-			new Thread(){
-				@Override
-				public void run(){
+                }
+            }.start();
 
-					try {
-						ConferenceSpeechClient client = new ConferenceSpeechClient();
-						ConferenceSpeechListener listener = new ConferenceSpeechListener("12345678", "sample.docx");
-						client.batchRecognize("D://1-写给云-低质量1.amr", listener);
-					} catch (UnsupportedAudioFileException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+        }
+    }
 
-				}
-			}.start();
+    public static void main(String[] args) {
+        new TestConferenceSpeechRec().start();
 
-		}
-
-
-	}
-	public static void main(String[] args) {
-		new TestConferenceSpeechRec().start();
-		
-		System.out.println("222");
-	}
+        System.out.println("222");
+    }
 
 }

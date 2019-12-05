@@ -1,7 +1,6 @@
 // Copyright(c) 2018 Mobvoi Inc. All Rights Reserved.
 package com.mobvoi.ai.asr.sdk.utils;
 
-import com.google.protobuf.TextFormat;
 import com.mobvoi.speech.recognition.conference.v1.ConferenceSpeechProto;
 import io.grpc.stub.StreamObserver;
 import lombok.Data;
@@ -23,13 +22,28 @@ public class ConferenceSpeechListener {
     private String outputDocFilePath;
     private StreamObserver<ConferenceSpeechProto.ConferenceSpeechResponse> rStreamObserver;
     private float decodingProgress = 0;
+    private CallBackMessage callbackMessage = null;
 
+    /**
+     * 无须返回值
+     */
     public ConferenceSpeechListener(String audioId, String outputDocFilePath) {
+        this(audioId, outputDocFilePath, null);
+    }
+
+    /**
+     * json串返回，需要外接变量
+     */
+    public ConferenceSpeechListener(String audioId, String outputDocFilePath, CallBackMessage xcallBackMessage) {
         this.audioId = audioId;
         this.outputDocFilePath = outputDocFilePath;
         this.rStreamObserver = setupResponseObserver(outputDocFilePath);
+        if (xcallBackMessage != null) {
+            this.callbackMessage = xcallBackMessage;
+        }
     }
 
+    //
     private StreamObserver<ConferenceSpeechProto.ConferenceSpeechResponse> setupResponseObserver(String outputDocFilePath) {
         ConferenceSpeechListener tSpeechListener = this;
         return new StreamObserver<ConferenceSpeechProto.ConferenceSpeechResponse>() {
@@ -38,14 +52,13 @@ public class ConferenceSpeechListener {
                 if (response.hasError() && !ConferenceSpeechProto.Error.Code.OK.equals(response.getError().getCode())) {
                     // TODO(业务方): 业务方可以根据conference.proto中定义的error进行处理
                     //log.info("Error met " + TextFormat.printToUnicodeString(response));
-                    String jsonStr = null;
                     try {
-                        jsonStr = ProtoJsonUtils.toJson(response);
+                        callbackMessage.setCallBackJson(ProtoJsonUtils.toJson(response));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                     //输出json异常信息
-                    log.info(jsonStr);
+                    log.info(callbackMessage.getCallBackJson());
                     latch.countDown();
                     return;
                 }
@@ -90,6 +103,7 @@ public class ConferenceSpeechListener {
 
             @Override
             public void onCompleted() {
+                callbackMessage.setCallBackJson("=======================onCompleted");
                 log.info("complete asr call");
                 latch.countDown();
             }
