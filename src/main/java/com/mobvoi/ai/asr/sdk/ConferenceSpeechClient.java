@@ -45,8 +45,8 @@ public class ConferenceSpeechClient {
         return builder.build();
     }
 
-    // 此接口用作非实时语音识别, 由于音频文件可能会很大，所以采用流式发送的方法。
-    public boolean batchRecognize(String audioFile, ConferenceSpeechListener listener)
+    // 此接口用作非实时语音识别, 由于音频文件可能会很大，所以采用流式发送的方法。[超时时间可调整]
+    public boolean batchRecognize(String audioFile, ConferenceSpeechListener listener, Integer timeOut)
             throws IOException, UnsupportedAudioFileException {
 
         StopWatch stopWatch = new StopWatch();
@@ -80,8 +80,14 @@ public class ConferenceSpeechClient {
 
         // Receiving happens asynchronously
         try {
-            if (!listener.getLatch().await(4, TimeUnit.HOURS)) {
-                log.warn("recognition can not finish within 4 hours");
+            if (timeOut != null) {
+                if (!listener.getLatch().await(timeOut, TimeUnit.MINUTES)) {
+                    log.warn("recognition can not finish within 4 hours");
+                }
+            } else {
+                if (!listener.getLatch().await(240, TimeUnit.MINUTES)) {
+                    log.warn("recognition can not finish within 4 hours");
+                }
             }
         } catch (java.lang.InterruptedException e) {
             e.printStackTrace();
@@ -93,12 +99,20 @@ public class ConferenceSpeechClient {
         return true;
     }
 
+
+    // 此接口用作非实时语音识别, 由于音频文件可能会很大，所以采用流式发送的方法。[超时时间默认240分钟]
+    public boolean batchRecognize(String audioFile, ConferenceSpeechListener listener)
+            throws IOException, UnsupportedAudioFileException {
+        return batchRecognize(audioFile, listener, null);
+    }
+
     public static void main(String[] args) throws IOException, UnsupportedAudioFileException {
         ConferenceSpeechClient client = new ConferenceSpeechClient();
         CallBackMessage cbm = new CallBackMessage();
-        ConferenceSpeechListener listener = new ConferenceSpeechListener("12345678", "sample.docx",cbm);
-        client.batchRecognize("D://1-写给云-低质量1.amr", listener);
-        log.info("=========================>>>"+ cbm.getCallBackJson());
+        ConferenceSpeechListener listener = new ConferenceSpeechListener("12345678", "sample.docx", cbm);
+        //TODO 超时时间从数据库获取
+        client.batchRecognize("D://1-写给云-低质量1.amr", listener,120);
+        log.info("=========================>>>" + cbm.getCallBackJson());
 
     }
 }
