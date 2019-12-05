@@ -63,9 +63,10 @@ public class ConferenceSpeechListener {
                         /**截取语音识别进度百分比**/
                         if (speechPercentageArr != null && speechPercentageArr.length == 2) {
                             speechPercentage = speechPercentageArr[1];
-                            //语音识别进度添加到缓存
-                            MemCacheUitl.put(audioId, speechPercentage);
-                            //log.info("------------>>>>" + (String) MemCacheUitl.get(audioId));
+                            //语音识别进度添加到缓存[业务端维护缓存删除]
+                            String audioPrefix =PropertiesLoader.getString("speechRecCacheFilePrefix");
+                            MemCacheUitl.put(audioPrefix+audioId, speechPercentage);
+                            log.info("------------>>>>" + (String) MemCacheUitl.get(audioPrefix+audioId));
                         }
                     }
                     log.info(conclusion);
