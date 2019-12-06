@@ -6,6 +6,7 @@ import io.grpc.stub.StreamObserver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import com.alibaba.fastjson.JSONObject;
 
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
@@ -55,7 +56,12 @@ public class ConferenceSpeechListener {
                     // TODO(业务方): 业务方可以根据conference.proto中定义的error进行处理
                     //log.info("Error met " + TextFormat.printToUnicodeString(response));
                     try {
-                        callbackMessage.setCallBackJson(ProtoJsonUtils.toJson(response));
+                        ResultJsonUtil rju = new ResultJsonUtil();
+                        rju.setSuccess(0);
+                        rju.setMsg("语音转换出现异常");
+                        JSONObject jsobj =  FastJsonUtils.toJSONObject(ProtoJsonUtils.toJson(response));
+                        rju.setThirdJsonData(jsobj);
+                        callbackMessage.setCallBackJson(FastJsonUtils.getBeanToJson(rju));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -99,6 +105,12 @@ public class ConferenceSpeechListener {
 
             @Override
             public void onError(Throwable t) {
+                ResultJsonUtil rju = new ResultJsonUtil();
+                rju.setSuccess(0);
+                rju.setMsg("语音转换出现系统级异常");
+                JSONObject jsobj =  FastJsonUtils.toJSONObject("{\"error\":{\"code\":\"WENWEN_SYSTEM_ERROR\",\"message\":"+t.getMessage()+"}}");
+                rju.setThirdJsonData(jsobj);
+                callbackMessage.setCallBackJson(FastJsonUtils.getBeanToJson(rju));
                 log.error(t.getMessage());
                 latch.countDown();
             }

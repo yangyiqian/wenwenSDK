@@ -1,9 +1,8 @@
 package com.mobvoi.ai.asr.sdk;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.protobuf.ByteString;
-import com.mobvoi.ai.asr.sdk.utils.CallBackMessage;
-import com.mobvoi.ai.asr.sdk.utils.ConferenceSpeechListener;
-import com.mobvoi.ai.asr.sdk.utils.SingletonChannel;
+import com.mobvoi.ai.asr.sdk.utils.*;
 import com.mobvoi.speech.recognition.conference.v1.ConferenceSpeechGrpc;
 import com.mobvoi.speech.recognition.conference.v1.ConferenceSpeechProto;
 import io.grpc.ManagedChannel;
@@ -74,25 +73,43 @@ public class ConferenceSpeechClient {
             }
 
         }
-
         // Mark the end of requests
         requestObserver.onCompleted();
-        CallBackMessage cbm =new CallBackMessage();
-        cbm.setCallBackJson("xxxxxxxxxxxxxxxxxxxxxxxxx");
-        listener.setCallbackMessage(cbm);
+        ResultJsonUtil rju = new ResultJsonUtil();
+        rju.setSuccess(1);
+        rju.setMsg("语音转换正常");
+        listener.getCallbackMessage().setCallBackJson(FastJsonUtils.getBeanToJson(rju));
 
         // Receiving happens asynchronously
+        ResultJsonUtil rjuTimeOut = new ResultJsonUtil();
         try {
+            rjuTimeOut.setSuccess(0);
             if (timeOut != null) {
                 if (!listener.getLatch().await(timeOut, TimeUnit.MINUTES)) {
+                    rjuTimeOut.setMsg("语音识别超过"+timeOut +"分钟");
+                    JSONObject jsobj =  FastJsonUtils.toJSONObject("{\"error\":{\"code\":\"WENWEN_SDK_TIMEOUT\",\"message\":超时"+timeOut+"分钟}}");
+                    rjuTimeOut.setThirdJsonData(jsobj);
+                    listener.getCallbackMessage().setCallBackJson(FastJsonUtils.getBeanToJson(rjuTimeOut));
                     log.warn("recognition can not finish within 4 hours");
                 }
             } else {
                 if (!listener.getLatch().await(240, TimeUnit.MINUTES)) {
-                    log.warn("recognition can not finish within 4 hours");
+                    rjuTimeOut.setMsg("语音识别超过240分钟");
+                    JSONObject jsobj =  FastJsonUtils.toJSONObject("{\"error\":{\"code\":\"WENWEN_SDK_TIMEOUT\",\"message\":超时240分钟}}");
+                    listener.getCallbackMessage().setCallBackJson(FastJsonUtils.getBeanToJson(rjuTimeOut));
+                    log.warn("recognition can not finish within 240 Minutes");
                 }
             }
         } catch (java.lang.InterruptedException e) {
+            rjuTimeOut.setSuccess(0);
+            rjuTimeOut.setMsg("语音识别出现中断异常");
+            listener.getCallbackMessage().setCallBackJson(FastJsonUtils.getBeanToJson(rjuTimeOut));
+            log.warn("recognition can not finish within 240 Minutes");
+            e.printStackTrace();
+        } catch (Exception e) {
+            rjuTimeOut.setSuccess(0);
+            rjuTimeOut.setMsg("语音识别出现未知异常");
+            listener.getCallbackMessage().setCallBackJson(FastJsonUtils.getBeanToJson(rjuTimeOut));
             e.printStackTrace();
         }
 
