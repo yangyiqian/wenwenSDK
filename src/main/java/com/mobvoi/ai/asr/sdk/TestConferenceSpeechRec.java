@@ -18,11 +18,10 @@ public class TestConferenceSpeechRec {
                     Integer randomNumber = RandomNumberUtil.getRandomNumber();
 
                     try {
-                        CallBackMessage cbm = new CallBackMessage();
                         ConferenceSpeechClient client = new ConferenceSpeechClient();
-                        ConferenceSpeechListener listener = new ConferenceSpeechListener("12345678" + randomNumber, "sample" + randomNumber + ".docx",cbm);
+                        ConferenceSpeechListener listener = new ConferenceSpeechListener("12345678" + randomNumber, "sample" + randomNumber + ".docx");
                         client.batchRecognize("D://1-写给云-低质量1.amr", listener);
-                        log.info("=========================xxx>>>"+ cbm.getCallBackJson());
+                        log.info("=========================xxx>>>"+ listener.getCallbackMessage().getCallBackJson());
                     } catch (UnsupportedAudioFileException e) {
                         e.printStackTrace();
                     } catch (IOException e) {
@@ -31,7 +30,6 @@ public class TestConferenceSpeechRec {
 
                 }
             }.start();
-
         }
     }
 

@@ -77,6 +77,9 @@ public class ConferenceSpeechClient {
 
         // Mark the end of requests
         requestObserver.onCompleted();
+        CallBackMessage cbm =new CallBackMessage();
+        cbm.setCallBackJson("xxxxxxxxxxxxxxxxxxxxxxxxx");
+        listener.setCallbackMessage(cbm);
 
         // Receiving happens asynchronously
         try {
@@ -108,11 +111,10 @@ public class ConferenceSpeechClient {
 
     public static void main(String[] args) throws IOException, UnsupportedAudioFileException {
         ConferenceSpeechClient client = new ConferenceSpeechClient();
-        CallBackMessage cbm = new CallBackMessage();
-        ConferenceSpeechListener listener = new ConferenceSpeechListener("12345678", "sample.docx", cbm);
+        ConferenceSpeechListener listener = new ConferenceSpeechListener("12345678", "sample.docx");
         //TODO 超时时间从数据库获取
         client.batchRecognize("D://1-写给云-低质量1.amr", listener,120);
-        log.info("=========================>>>" + cbm.getCallBackJson());
+        log.info("=========================xxx>>>"+ listener.getCallbackMessage().getCallBackJson());
 
     }
 }

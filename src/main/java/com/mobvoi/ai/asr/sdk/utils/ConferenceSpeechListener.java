@@ -22,25 +22,27 @@ public class ConferenceSpeechListener {
     private String outputDocFilePath;
     private StreamObserver<ConferenceSpeechProto.ConferenceSpeechResponse> rStreamObserver;
     private float decodingProgress = 0;
-    private CallBackMessage callbackMessage = null;
-
     /**
-     * 无须返回值
-     */
-    public ConferenceSpeechListener(String audioId, String outputDocFilePath) {
-        this(audioId, outputDocFilePath, null);
-    }
+     * 用于保存语音识别转换后的状态信息(成功 or 失败 json)
+     **/
+    private CallBackMessage callbackMessage = new CallBackMessage();
+
 
     /**
      * json串返回，需要外接变量
      */
-    public ConferenceSpeechListener(String audioId, String outputDocFilePath, CallBackMessage xcallBackMessage) {
+    public ConferenceSpeechListener(String audioId, String outputDocFilePath) {
         this.audioId = audioId;
         this.outputDocFilePath = outputDocFilePath;
         this.rStreamObserver = setupResponseObserver(outputDocFilePath);
-        if (xcallBackMessage != null) {
-            this.callbackMessage = xcallBackMessage;
-        }
+    }
+
+    public CallBackMessage getCallbackMessage() {
+        return callbackMessage;
+    }
+
+    public void setCallbackMessage(CallBackMessage callbackMessage) {
+        this.callbackMessage = callbackMessage;
     }
 
     //
@@ -103,7 +105,6 @@ public class ConferenceSpeechListener {
 
             @Override
             public void onCompleted() {
-                callbackMessage.setCallBackJson("=======================onCompleted");
                 log.info("complete asr call");
                 latch.countDown();
             }
