@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.alibaba.fastjson.JSONObject;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.concurrent.CountDownLatch;
 
 // TODO(业务方): 业务方可以根据需要修改该函数来对接其系统
@@ -84,21 +85,13 @@ public class ConferenceSpeechListener {
                     float decodedWavTime = response.getResult().getDecodedWavTime();
                     float totalWavTime = response.getResult().getTotalWavTime();
                     tSpeechListener.setDecodingProgress(decodedWavTime / totalWavTime);
+                    DecimalFormat speechRecFormat = new DecimalFormat("0.00");
+                    String progressStr = speechRecFormat.format(tSpeechListener.getDecodingProgress());
                     String conclusion = String.format("Current docoding progress: decoded wav time %s, total wav time %s, progress %s",
-                            decodedWavTime, totalWavTime, tSpeechListener.getDecodingProgress());
-                    String speechPercentage = null;
-                    if (StringUtils.isNotBlank(conclusion)) {
-
-                        String[] speechPercentageArr = conclusion.split("progress ");
-                        /**截取语音识别进度百分比**/
-                        if (speechPercentageArr != null && speechPercentageArr.length == 2) {
-                            speechPercentage = speechPercentageArr[1];
-                            //语音识别进度添加到缓存[业务端维护缓存删除]
-                            String audioPrefix = PropertiesLoader.getString("speechRecCacheFilePrefix");
-                            MemCacheUitl.put(audioPrefix + audioId, speechPercentage);
-                            log.info("------------>>>>" + (String) MemCacheUitl.get(audioPrefix + audioId));
-                        }
-                    }
+                            decodedWavTime, totalWavTime,progressStr);
+                    String audioPrefix = PropertiesLoader.getString("speechRecCacheFilePrefix");
+                    MemCacheUitl.put(audioPrefix + audioId, progressStr);
+                    log.info("------------>>>>" + (String) MemCacheUitl.get(audioPrefix + audioId));
                     log.info(conclusion);
                 }
             }
