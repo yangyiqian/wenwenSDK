@@ -11,7 +11,7 @@ import java.io.IOException;
 public class TestConferenceSpeechRec {
 
     public void start() {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 2; i++) {
             new Thread() {
                 @Override
                 public void run() {

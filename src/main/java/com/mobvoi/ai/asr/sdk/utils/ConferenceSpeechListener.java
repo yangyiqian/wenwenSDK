@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.alibaba.fastjson.JSONObject;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.concurrent.CountDownLatch;
 
@@ -90,7 +91,10 @@ public class ConferenceSpeechListener {
                     String conclusion = String.format("Current docoding progress: decoded wav time %s, total wav time %s, progress %s",
                             decodedWavTime, totalWavTime,progressStr);
                     String audioPrefix = PropertiesLoader.getString("speechRecCacheFilePrefix");
+                    //保存音频进度
                     MemCacheUitl.put(audioPrefix + audioId, progressStr);
+                    //保存音频总时长
+                    MemCacheUitl.put(audioPrefix + audioId+"_totalWavTime", new BigDecimal(totalWavTime).toPlainString());
                     log.info("------------>>>>" + (String) MemCacheUitl.get(audioPrefix + audioId));
                     log.info(conclusion);
                 }
