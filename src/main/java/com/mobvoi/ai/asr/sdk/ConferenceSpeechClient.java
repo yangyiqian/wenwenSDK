@@ -64,12 +64,12 @@ public class ConferenceSpeechClient {
                 } else {
                     requestObserver.onNext(setupStreamingRecognizeRequestAsAudioContent(ArrayUtils.subarray(bytes, 0, length)));
                 }
-            }
-            // Avoid busy looping.
-            try {
-                Thread.sleep(1);
-            } catch (java.lang.InterruptedException e) {
-                e.printStackTrace();
+                // Avoid busy looping.
+                try {
+                    Thread.sleep(1);
+                } catch (java.lang.InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
 
         }
