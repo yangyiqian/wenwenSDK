@@ -55,7 +55,7 @@ public class ConferenceSpeechClient {
         StreamObserver<ConferenceSpeechProto.ConferenceSpeechRequest> requestObserver = stub.recognize(listener.getRStreamObserver());
 
         try (FileInputStream fis = new FileInputStream(audioFile)) {
-            int numBytes = 160;
+            int numBytes = 2100000;
             byte[] bytes = new byte[numBytes];
             int length;
             while ((length = fis.read(bytes, 0, numBytes)) > 0) {
