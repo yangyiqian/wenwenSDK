@@ -105,7 +105,7 @@ public class ConferenceSpeechListener {
                 ResultJsonUtil rju = new ResultJsonUtil();
                 rju.setSuccess(0);
                 rju.setMsg("语音转换出现系统级异常");
-                JSONObject jsobj =  FastJsonUtils.toJSONObject("{\"error\":{\"code\":\"WENWEN_SYSTEM_ERROR\",\"message\":\"+t.getMessage()+\"}}");
+                JSONObject jsobj =  FastJsonUtils.toJSONObject("{\"error\":{\"code\":\"WENWEN_SYSTEM_ERROR\",\"message\":\""+t.getMessage()+"\"}}");
                 rju.setThirdJsonData(jsobj);
                 String errJson=FastJsonUtils.getBeanToJson(rju);
                 callbackMessage.setCallBackJson(errJson);
