@@ -9,6 +9,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -74,11 +75,13 @@ public class ConferenceSpeechClient {
 
         }
         // Mark the end of requests
-        requestObserver.onCompleted();
-        ResultJsonUtil rju = new ResultJsonUtil();
-        rju.setSuccess(1);
-        rju.setMsg("语音转换正常");
-        listener.getCallbackMessage().setCallBackJson(FastJsonUtils.getBeanToJson(rju));
+        if(StringUtils.isBlank(listener.getCallbackMessage().getCallBackJson())){
+            requestObserver.onCompleted();
+            ResultJsonUtil rju = new ResultJsonUtil();
+            rju.setSuccess(1);
+            rju.setMsg("语音转换正常");
+            listener.getCallbackMessage().setCallBackJson(FastJsonUtils.getBeanToJson(rju));
+        }
 
         // Receiving happens asynchronously
         ResultJsonUtil rjuTimeOut = new ResultJsonUtil();
@@ -130,7 +133,7 @@ public class ConferenceSpeechClient {
         ConferenceSpeechClient client = new ConferenceSpeechClient();
         ConferenceSpeechListener listener = new ConferenceSpeechListener("12345678", "sample.docx");
         //TODO 超时时间从数据库获取
-        client.batchRecognize("D://1-写给云-低质量1.amr", listener,120);
+        client.batchRecognize("D://月球挖矿讲座__7h57m.mp3", listener,120);
         log.info("=========================xxx>>>"+ listener.getCallbackMessage().getCallBackJson());
 
     }
