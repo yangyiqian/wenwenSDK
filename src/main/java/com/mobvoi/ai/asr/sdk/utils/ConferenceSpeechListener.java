@@ -2,6 +2,8 @@
 package com.mobvoi.ai.asr.sdk.utils;
 
 import com.mobvoi.speech.recognition.conference.v1.ConferenceSpeechProto;
+
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ public class ConferenceSpeechListener {
     private final CountDownLatch latch = new CountDownLatch(1);
     private String audioId;
     private String outputDocFilePath;
+    private long timeOutInMinutes;
     private StreamObserver<ConferenceSpeechProto.ConferenceSpeechResponse> rStreamObserver;
     private float decodingProgress = 0;
     /**
@@ -34,10 +37,11 @@ public class ConferenceSpeechListener {
     /**
      * json串返回，需要外接变量
      */
-    public ConferenceSpeechListener(String audioId, String outputDocFilePath) {
+    public ConferenceSpeechListener(String audioId, String outputDocFilePath, long timeOutInMinutes) {
         this.audioId = audioId;
         this.outputDocFilePath = outputDocFilePath;
         this.rStreamObserver = setupResponseObserver(outputDocFilePath);
+        this.timeOutInMinutes = timeOutInMinutes;
     }
 
     public CallBackMessage getCallbackMessage() {
@@ -80,6 +84,16 @@ public class ConferenceSpeechListener {
                     } catch (Exception e) {
                         System.err.println("Failed to write final transcript to word file with content \n" + finalTranscript);
                     }
+                    try {
+                        ResultJsonUtil rju = new ResultJsonUtil();
+                        rju.setSuccess(1);
+                        rju.setMsg("语音转换正常");
+                        JSONObject jsobj =  FastJsonUtils.toJSONObject(ProtoJsonUtils.toJson(response));
+                        rju.setThirdJsonData(jsobj);
+                        callbackMessage.setCallBackJson(FastJsonUtils.getBeanToJson(rju));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     latch.countDown();
                     return;
                 } else {
@@ -100,12 +114,20 @@ public class ConferenceSpeechListener {
                 }
             }
 
+            // Grpc error code 可以参考https://grpc.io/docs/guides/error/
             @Override
             public void onError(Throwable t) {
+                final Status status = Status.fromThrowable(t);
+                String message = "语音转换出现系统级异常";
+                String code = "WENWEN_SYSTEM_ERROR";
+                if (Status.DEADLINE_EXCEEDED.getCode().equals(status.getCode())) {
+                    message = "语音识别超过"+ timeOutInMinutes +"分钟";
+                    code = "WENWEN_SDK_TIMEOUT";
+                } 
                 ResultJsonUtil rju = new ResultJsonUtil();
                 rju.setSuccess(0);
-                rju.setMsg("语音转换出现系统级异常");
-                JSONObject jsobj =  FastJsonUtils.toJSONObject("{\"error\":{\"code\":\"WENWEN_SYSTEM_ERROR\",\"message\":\"+t.getMessage()+\"}}");
+                rju.setMsg(message);
+                JSONObject jsobj =  FastJsonUtils.toJSONObject("{\"error\":{\"code\":\"" + code + "\",\"message\":\""+t.getMessage()+"\"}}");
                 rju.setThirdJsonData(jsobj);
                 String errJson=FastJsonUtils.getBeanToJson(rju);
                 callbackMessage.setCallBackJson(errJson);
