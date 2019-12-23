@@ -70,21 +70,18 @@ public class ConferenceSpeechListener {
                         callbackMessage.setCallBackJson(FastJsonUtils.getBeanToJson(rju));
                     } catch (IOException e) {
                         e.printStackTrace();
+                    }finally {
+                        //输出json异常信息
+                        log.info(callbackMessage.getCallBackJson());
+                        latch.countDown();
+                        return;
                     }
-                    //输出json异常信息
-                    log.info(callbackMessage.getCallBackJson());
-                    latch.countDown();
-                    return;
                 }
                 if (ConferenceSpeechProto.ConferenceSpeechResponse.ConferenceSpeechEventType.CONFERENCE_SPEECH_EOS
                         .equals(response.getSpeechEventType())) {
                     String finalTranscript = response.getResult().getTranscript();
                     try {
                         DocUtils.toWord(finalTranscript, outputDocFilePath);
-                    } catch (Exception e) {
-                        System.err.println("Failed to write final transcript to word file with content \n" + finalTranscript);
-                    }
-                    try {
                         ResultJsonUtil rju = new ResultJsonUtil();
                         rju.setSuccess(1);
                         rju.setMsg("语音转换正常");
@@ -92,10 +89,14 @@ public class ConferenceSpeechListener {
                         rju.setThirdJsonData(jsobj);
                         callbackMessage.setCallBackJson(FastJsonUtils.getBeanToJson(rju));
                     } catch (IOException e) {
+                        log.error("语音转换发生IOException");
                         e.printStackTrace();
+                    }catch (Exception e) {
+                        log.error("Failed to write final transcript to word file with content \n" + finalTranscript);
+                    }finally {
+                        latch.countDown();
+                        return;
                     }
-                    latch.countDown();
-                    return;
                 } else {
                     float decodedWavTime = response.getResult().getDecodedWavTime();
                     float totalWavTime = response.getResult().getTotalWavTime();
@@ -117,22 +118,28 @@ public class ConferenceSpeechListener {
             // Grpc error code 可以参考https://grpc.io/docs/guides/error/
             @Override
             public void onError(Throwable t) {
-                final Status status = Status.fromThrowable(t);
-                String message = "语音转换出现系统级异常";
-                String code = "WENWEN_SYSTEM_ERROR";
-                if (Status.DEADLINE_EXCEEDED.getCode().equals(status.getCode())) {
-                    message = "语音识别超过"+ timeOutInMinutes +"分钟";
-                    code = "WENWEN_SDK_TIMEOUT";
-                } 
-                ResultJsonUtil rju = new ResultJsonUtil();
-                rju.setSuccess(0);
-                rju.setMsg(message);
-                JSONObject jsobj =  FastJsonUtils.toJSONObject("{\"error\":{\"code\":\"" + code + "\",\"message\":\""+t.getMessage()+"\"}}");
-                rju.setThirdJsonData(jsobj);
-                String errJson=FastJsonUtils.getBeanToJson(rju);
-                callbackMessage.setCallBackJson(errJson);
-                log.error(errJson);
-                latch.countDown();
+                try {
+                    final Status status = Status.fromThrowable(t);
+                    String message = "语音转换出现系统级异常";
+                    String code = "WENWEN_SYSTEM_ERROR";
+                    if (Status.DEADLINE_EXCEEDED.getCode().equals(status.getCode())) {
+                        message = "语音识别超过"+ timeOutInMinutes +"分钟";
+                        code = "WENWEN_SDK_TIMEOUT";
+                    }
+                    ResultJsonUtil rju = new ResultJsonUtil();
+                    rju.setSuccess(0);
+                    rju.setMsg(message);
+                    JSONObject jsobj =  FastJsonUtils.toJSONObject("{\"error\":{\"code\":\"" + code + "\",\"message\":\""+t.getMessage()+"\"}}");
+                    rju.setThirdJsonData(jsobj);
+                    String errJson=FastJsonUtils.getBeanToJson(rju);
+                    callbackMessage.setCallBackJson(errJson);
+                    log.error(errJson);
+                } catch (Exception e) {
+                    log.error("问问SDK onError 方法出现异常");
+                    e.printStackTrace();
+                } finally {
+                    latch.countDown();
+                }
             }
 
             @Override
