@@ -46,13 +46,10 @@ public class ConferenceSpeechClient {
     }
 
     // 此接口用作非实时语音识别, 由于音频文件可能会很大，所以采用流式发送的方法。[超时时间可调整]
-    public boolean batchRecognize(String audioFile, ConferenceSpeechListener listener, Integer timeOut)
+    public boolean batchRecognize(String audioFile, ConferenceSpeechListener listener)
             throws IOException, UnsupportedAudioFileException {
 
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-        CountDownLatch latch = new CountDownLatch(1);
-        ConferenceSpeechGrpc.ConferenceSpeechStub stub = ConferenceSpeechGrpc.newStub(channel);
+        ConferenceSpeechGrpc.ConferenceSpeechStub stub = ConferenceSpeechGrpc.newStub(channel).withDeadlineAfter(listener.getTimeOutInMinutes(), TimeUnit.MINUTES);
         StreamObserver<ConferenceSpeechProto.ConferenceSpeechRequest> requestObserver = stub.recognize(listener.getRStreamObserver());
 
         try (FileInputStream fis = new FileInputStream(audioFile)) {
@@ -72,69 +69,23 @@ public class ConferenceSpeechClient {
                     e.printStackTrace();
                 }
             }
-
         }
-        // Mark the end of requests
-        if(StringUtils.isBlank(listener.getCallbackMessage().getCallBackJson())){
-            requestObserver.onCompleted();
-            ResultJsonUtil rju = new ResultJsonUtil();
-            rju.setSuccess(1);
-            rju.setMsg("语音转换正常");
-            listener.getCallbackMessage().setCallBackJson(FastJsonUtils.getBeanToJson(rju));
-        }
-
-        // Receiving happens asynchronously
-        ResultJsonUtil rjuTimeOut = new ResultJsonUtil();
-        try {
-            rjuTimeOut.setSuccess(0);
-            if (timeOut != null) {
-                if (!listener.getLatch().await(timeOut, TimeUnit.MINUTES)) {
-                    rjuTimeOut.setMsg("语音识别超过"+timeOut +"分钟");
-                    JSONObject jsobj =  FastJsonUtils.toJSONObject("{\"error\":{\"code\":\"WENWEN_SDK_TIMEOUT\",\"message\":超时"+timeOut+"分钟}}");
-                    rjuTimeOut.setThirdJsonData(jsobj);
-                    listener.getCallbackMessage().setCallBackJson(FastJsonUtils.getBeanToJson(rjuTimeOut));
-                    log.warn("recognition can not finish within 4 hours");
-                }
-            } else {
-                if (!listener.getLatch().await(240, TimeUnit.MINUTES)) {
-                    rjuTimeOut.setMsg("语音识别超过240分钟");
-                    JSONObject jsobj =  FastJsonUtils.toJSONObject("{\"error\":{\"code\":\"WENWEN_SDK_TIMEOUT\",\"message\":超时240分钟}}");
-                    listener.getCallbackMessage().setCallBackJson(FastJsonUtils.getBeanToJson(rjuTimeOut));
-                    log.warn("recognition can not finish within 240 Minutes");
-                }
-            }
-        } catch (java.lang.InterruptedException e) {
-            rjuTimeOut.setSuccess(0);
-            rjuTimeOut.setMsg("语音识别出现中断异常");
-            listener.getCallbackMessage().setCallBackJson(FastJsonUtils.getBeanToJson(rjuTimeOut));
-            log.warn("recognition can not finish within 240 Minutes");
-            e.printStackTrace();
-        } catch (Exception e) {
-            rjuTimeOut.setSuccess(0);
-            rjuTimeOut.setMsg("语音识别出现未知异常");
-            listener.getCallbackMessage().setCallBackJson(FastJsonUtils.getBeanToJson(rjuTimeOut));
-            e.printStackTrace();
-        }
-
-        stopWatch.stop();
-        long elapsed = stopWatch.getTime(TimeUnit.MILLISECONDS);
-        log.info("Elapsed " + elapsed + "ms");
+        requestObserver.onCompleted();
         return true;
     }
 
-
-    // 此接口用作非实时语音识别, 由于音频文件可能会很大，所以采用流式发送的方法。[超时时间默认240分钟]
-    public boolean batchRecognize(String audioFile, ConferenceSpeechListener listener)
-            throws IOException, UnsupportedAudioFileException {
-        return batchRecognize(audioFile, listener, null);
-    }
-
-    public static void main(String[] args) throws IOException, UnsupportedAudioFileException {
+    public static void main(String[] args) throws IOException, UnsupportedAudioFileException, InterruptedException {
         ConferenceSpeechClient client = new ConferenceSpeechClient();
-        ConferenceSpeechListener listener = new ConferenceSpeechListener("12345678", "sample.docx");
+        long timeoutInMinutes = 10;
+        ConferenceSpeechListener listener = new ConferenceSpeechListener("12345678", "sample.docx", timeoutInMinutes);
         //TODO 超时时间从数据库获取
-        client.batchRecognize("D://月球挖矿讲座__7h57m.mp3", listener,120);
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        client.batchRecognize("/Users/qli/Desktop/180 1860 2866_20191215162834_01_01.wav", listener);
+        listener.getLatch().await(4, TimeUnit.HOURS);  // 等待程序结束
         log.info("=========================xxx>>>"+ listener.getCallbackMessage().getCallBackJson());
-
+        stopWatch.stop();
+        long elapsed = stopWatch.getTime(TimeUnit.MILLISECONDS);
+        log.info("Elapsed " + elapsed + "ms");
     }
 }
