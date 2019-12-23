@@ -122,7 +122,7 @@ public class Demo {
                 System.exit(-1);
             }
             ConferenceSpeechClient client = new ConferenceSpeechClient();
-            ConferenceSpeechListener listener = new ConferenceSpeechListener("audio id", "sample.docx");
+            ConferenceSpeechListener listener = new ConferenceSpeechListener("audio id", "sample.docx",111);
             client.batchRecognize(wavfilePath, listener);
             log.info("Recognized transcripts is written to sample.docx");
             System.exit(1);
