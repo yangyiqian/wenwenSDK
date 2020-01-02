@@ -85,6 +85,9 @@ public class ConferenceSpeechListener {
                         ResultJsonUtil rju = new ResultJsonUtil();
                         rju.setSuccess(1);
                         rju.setMsg("语音转换正常");
+                        //转换json前清空问问数据，保证json转换不出现异常。
+                        // 因为之前语音内容已输出到文件内，所以此处可以清空。addby yyq  20200102
+                        response.getResult().setTranscript("");
                         JSONObject jsobj =  FastJsonUtils.toJSONObject(ProtoJsonUtils.toJson(response));
                         rju.setThirdJsonData(jsobj);
                         callbackMessage.setCallBackJson(FastJsonUtils.getBeanToJson(rju));
