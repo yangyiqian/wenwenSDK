@@ -80,6 +80,15 @@ public class ConferenceSpeechListener {
                 if (ConferenceSpeechProto.ConferenceSpeechResponse.ConferenceSpeechEventType.CONFERENCE_SPEECH_EOS
                         .equals(response.getSpeechEventType())) {
                     String finalTranscript = response.getResult().getTranscript();
+                    ConferenceSpeechProto.ConferenceSpeechResponse newResponse =
+                        ConferenceSpeechProto.ConferenceSpeechResponse.newBuilder()
+                        .setError(response.getError())
+                        .setSpeechEventType(response.getSpeechEventType())
+                        .setResult(ConferenceSpeechProto.ConferenceSpeechResult.newBuilder()
+                             .setDecodedWavTime(response.getResult().getDecodedWavTime())
+                             .setTotalWavTime(response.getResult().getTotalWavTime())
+                             .build())
+                        .build();
                     try {
                         DocUtils.toWord(finalTranscript, outputDocFilePath);
                         ResultJsonUtil rju = new ResultJsonUtil();
@@ -87,8 +96,8 @@ public class ConferenceSpeechListener {
                         rju.setMsg("语音转换正常");
                         //转换json前清空问问数据，保证json转换不出现异常。
                         // 因为之前语音内容已输出到文件内，所以此处可以清空。addby yyq  20200102
-                        response.getResult().setTranscript("");
-                        JSONObject jsobj =  FastJsonUtils.toJSONObject(ProtoJsonUtils.toJson(response));
+                        // response.getResult().setTranscript("");
+                        JSONObject jsobj =  FastJsonUtils.toJSONObject(ProtoJsonUtils.toJson(newResponse));
                         rju.setThirdJsonData(jsobj);
                         callbackMessage.setCallBackJson(FastJsonUtils.getBeanToJson(rju));
                     } catch (IOException e) {
